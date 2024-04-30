@@ -1,0 +1,7 @@
+*.pdf
+EDA_data/
+final_471_datasets/
+in_class_coding/
+# models/
+# models_save/
+# runthroughs/
