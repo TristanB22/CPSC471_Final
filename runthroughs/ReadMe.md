@@ -15,3 +15,5 @@ This directory contains all of the full runthroughs of the notebook that we have
 | best_total_expression_yet       | A converged notebook showing good expression from the doped nodes late in the model |
 | great_total_above               | Shows an instance of the notebook where the representation in the augmented nodes is monotonically above the baseline | 
 | solid_epsilon_jump_sum          | An auxiliary converged notebook in the case we need more runs to analyze in the report | 
+
+Each of the folders above has the models that were trained across the board along with generated images representing the important graphs that can be found in the notebook at that time in the development process. There is some variance in the contents and names of the files in each of the folders that are listed above. 
