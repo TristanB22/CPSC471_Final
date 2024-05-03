@@ -1,2 +1,4 @@
 # CPSC471_Final
-The code for the final project in CPSC471 at Yale University
+The code for the final project in CPSC471 at Yale University. Within this directory lies much of the most important code for actually harnessing the functionality of this repository. `health_insrurance_base_models.ipynb` is the most important file in this repository for the purpose of functionality as it provides all of the code that is needed to run, train, and dope the models that are trained. Additionally, this folder contains some general generated images that are used across runs to show the distribution of the principal components amongst other general information. 
+
+Folders like the node_importance_delta folder are used for testing ideas along the lines of the importance reduction formula for models deatiled in the health_insurance_base_models.ipynb notebook that we are using. 
