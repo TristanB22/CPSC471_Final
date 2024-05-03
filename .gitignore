@@ -5,6 +5,7 @@ CPSC_471_Project_Proposal__Short_.pdf
 EDA_data/
 final_471_datasets/
 in_class_coding/
-# models/
+models/private_key.pem 
+models/public_key.pem
 # models_save/
 # runthroughs/
