@@ -1,0 +1,854 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2023
+
+
+% ready for submission
+\usepackage{neurips_2023}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+% \usepackage[preprint]{neurips_2023}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+% \usepackage[final]{neurips_2023}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+   % \usepackage[nonatbib]{neurips_2023}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{graphicx} 
+\usepackage{subcaption} 
+\usepackage{float}
+
+\usepackage[backend=biber, style=apa, citestyle=apa]{biblatex}
+
+\addbibresource{cited_references.bib}
+\addbibresource{consulted_references.bib}
+
+
+\title{Explainability, Fairness, and Security for Machine Learning in Sensitive Environments}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{
+  Tristan Brigham\\
+  % \thanks{Use footnote for providing further information
+    % about author (webpage, alternative address)---\emph{not} for acknowledging
+    % funding agencies.} \\
+  Yale University: CPSC 471\\
+  New Haven, CT 03301 \\
+  \texttt{tristan.brigham@yale.edu} \\
+  % examples of more authors
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \AND
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+  % \And
+  % Coauthor \\
+  % Affiliation \\
+  % Address \\
+  % \texttt{email} \\
+}
+
+
+\begin{document}
+
+
+\maketitle
+
+\section{Introduction}
+
+\subsection{Problem Definition}
+
+Machine learning models are \textit{not} called black boxes without reason. In most modern frameworks (especially gradient-based methods), it is difficult if not impossible to get a verifiably true understanding of the logic behind a neural network's output. Essentially every explainability method suffers from at least one (if not multiple) of:
+\begin{enumerate}
+    \item It is extremely time consuming to implement (e.g. VQA (\cite{kim2021vilt}))
+    \item It is for simple models (e.g. decision trees, regressions)
+    \item Inference accuracy is substantially hurt (e.g. Cognitive Models (\cite{Blazek2021ExplainableNN}))
+    \item The result is uncertain (e.g. LIME (\cite{ribeiro2016why}), SHAP (\cite{lundberg2017unified}))
+\end{enumerate}
+
+If any one of the above is the case for a given model, then it severely constrains where that model can be deployed. However, with ML continually being integrated into more systems with increasingly critical functions, it is becoming increasingly important to find methods that avoid the pitfalls above. Therein lies a key problem in machine learning: \textit{is it possible to have explanation methods that avoid every pitfall above?}
+
+I seek to provide the first comprehensive method for deploying machine learning in sensitive environments while avoiding the issues above. I define a sensitive environment as one where there exists the potential for unfair and unintentional bias, and where decisions have out-sized impacts. Given the imprecise nature of this definition, examples of such environments such as an insurance agency making decisions on whether to insure someone's property, a judicial system carrying out criminal justice, and a hospital making a diagnosis decision for a patient are included to help the reader understand what a sensitive environment is. In the following sections, I will outline my 3-part method for effective deployment of machine learning in sensitive environments denoted ALAIGHT. ALAIGHT utilizes novel methods to enforce explainability and fairness and draws on established cybersecurity principles to guarantee trust.
+
+
+
+% The final output of the entire program will be a compressed model with a hash that can be used to check whether the model has been tampered with since the original training. This ensures that the model is not only explainable and fair after training, but also that it can continue to be veritably fair into the future.
+
+\subsection{Relevance to Trustworthy Aspects}
+The ability to explain decisions in neural networks improves \textbf{every} one of the trustworthy aspects (robustness, explainability, privacy, and fairness) discussed in CPSC471 this semester. However, my methods most specifically target explainability, fairness, and adversarial robustness through concept-focused training, influence re-weighting, and weight freezing, respectively:
+
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=*]
+    
+    \item \textbf{Explainability:} The idea behind the concept-focused training is to push nodes to represent concepts and patterns present in the training data. Effectively, the goal is to create a machine learning model where one can analyze the products of concept nodes to understand what patterns the model has found in the data and is making its decisions on. Using this approach, I introduce an approach which I hope creates more explainable machine learning models. The approach is similar to the CAV framework discussed in class in finding ways to represent data, but has advantages in its ability to find the most important concepts present in data automatically instead of requiring human intervention to define concepts (\cite{druc2022concept}). 
+
+    \item \textbf{Fairness:} Using a combination of the broad explainability provided by the concept-focused training and other granular explainability methods such as Layer-wise Relevance Propagation (\cite{binder2016layerwise}), LIME (\cite{ribeiro2016why}), or Grad-CAM (\cite{Selvaraju_2019}), the end user can gain insight into the logic behind models' decisions. Using the influence re-weighting approach I propose in this paper, the end user can decrease the influence that any concept or input has on the output. This method can be used to limit unfair or harmful decision factors and thereby increase the fairness of the trained model in substantially less time than full re-training. 
+
+    \item \textbf{Adversarial Robustness:} In the final part of this framework I ensure that the model maintains user trust using known hashing algorithms such as SHA-256 through weight freezing (\cite{bergstra2017instruction}). Hashing the critical attributes of a model creates a fingerprint for the model that is extremely difficult to re-create. An institution can perform computationally-expensive verifications of model attributes (e.g. fairness guarantees, concept-understanding guarantees) and provide the hash of that resulting model to users in an immutable storage place. As long as the user is able to veritably compute the hash of the model they are using and compare it with the hash provided by the institution, the user-local model can gain the credibility of the institution with orders of magnitude less computing expenditure. 
+    
+    This directly relates to the trustworthy and robust aspects of ML we talked about in class by making secret permutations of the model impossible and upholding trust. 
+    
+\end{enumerate}
+
+
+
+\section{Related Works}
+
+Several existing methods seek to explain machine learning. Some of the most prevalent and related are detailed below:
+
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=*]
+
+    \item OpenAI used GPT-4 to analyze the neuron activations of GPT-2. The goal was to create an automated process for understanding the logic hidden in LLM neurons given how large the models can be (and therefore preventative manual analysis can be) (\cite{bills2023language}).
+
+    \item Saliency maps along with their derivative methods have showed promise in explaining what parts of an input a model focuses on and uses to generate its output (\cite{simonyan2014deep}).
+
+    \item SHAP is one of the leading approaches for model-agnostic explanations of machine learning. It uses Shapley values to estimate the contribution that each feature provides to the model, considering both the feature itself and its combinations with other features (\cite{ribeiro2016why}). However, this method runs in an exponential runtime and relies on models providing probabilistic and continuous outputs to score the confidence. 
+
+    \item LIME creates a locally explainable (typically linear) surrogate model with a weighting function to adjust the influence that points have on the surrogate model to estimate what data points and features inform the output. 
+
+    \item Researchers have experimented with creating neural networks where the sub-components of the neural networks are decision networks to decide whether a concept is present or not in the input. The outputs of that network are agglomerated and potentially passed to another network that generates the final network output (\cite{Blazek2021ExplainableNN}). Using the sub-decision networks guarantees that the model makes decisions based off of the concept model outputs which can improve interpretability. 
+
+\end{enumerate}
+
+Less exploration of intrinsically explainable machine learning methods has been done, and minimal research has focused on the topic since 2019 (\cite{card2019deep}, \cite{alvarez2018robust}).
+
+\section{Proposed Approaches}
+
+Using my approach as a basis, machine learning models can begin to be deployed in sensitive environments with verifiable logic and results. My approach involves 3 aspects, the first two of which are novel:
+
+\subsection{Concept-Focused Training}
+
+Using a custom-defined loss function, I manipulate the gradients during training such that the parameters force the activations of neurons to represent patterns or ideas that the model will decide on. The inspiration for this process comes from \cite{druc2022concept}. Instead of training surrogate models to differentiate concepts, they are simply integrated into the node activations. 
+
+Before training the model, I run PCA on the input data to get embeddings with minimized noise for the data points. By doing so, we can exploit the fact that PCA finds a low-dimensional representation while maintaining the most important features and variance for distinguishing classes (\cite{Kwak2003Feature}).
+
+After running PCA, I run a clustering algorithm to generate $C$ centroids for the data where $C$ is a user-defined hyperparameter. I have found that the best results come when $C$ is equal to roughly $\frac{\sqrt{n}}{5}$ of the dimensionality of the data $n$. These centroids will essentially represent distinct concepts or ideas present in the data, and a point's distance to these centroids judges how likely the point is to include the centroids' concepts.
+
+Input each of the vectors representing these centroids through the model while keeping track of the output from each non-activation-function layer within the model. 
+
+Finally, for each of the training data points we compute the Mahalanobis Distance between the training point and each of the $C$ centroids found above in the PCA representations of the data (\cite{mahalanobisDistancePaper}). Using the Mahalanobis distance accounts for any skew or covariance remaining within sub-clusters of the data. 
+
+Then, train the model using the original training data (not the PCA-decomposed version) where the same loss as normal is used. However, instead of applying the normal gradient to each parameter at each update step, transform the gradient $g_i$ into $g_i'$ for a single parameter $i$ in the model as follows:
+
+$$
+% g_i' =  \frac{s}{C} \sum_{j=1}^{C} \left( \left( \left( 1 - \sigma(g_i, w_i) \right) \cdot \left( 1 - m_{j, \text{norm}} \right)  +  \sigma(g_i, w_i) \cdot m_{j, \text{norm}} \right) \cdot \left( \sigma(\|\Delta_{o}\| \right) + \left( \left( \sigma(g_i, w_i) \cdot \left( 1 - m_{j, \text{norm}}\right) + \left( 1 - \sigma(g_i, w_i) \right) \cdot \left( m_{j, \text{norm}} \right)\right) \cdot \left( 1 - \sigma(\|\Delta_{o}\| \right) \right) \right) $$
+
+
+\begin{align*}
+g_i' &= \epsilon \cdot \frac{s}{C} \sum_{j=1}^{C} \Bigg( \left( \left(1 - \sigma(g_i, w_i)\right) \cdot \left(1 - m_{j, \text{norm}}\right) + \sigma(g_i, w_i) \cdot m_{j, \text{norm}} \right) \cdot \sigma(\|\Delta_{o}\|) \\
+&\quad + \left( \sigma(g_i, w_i) \cdot \left(1 - m_{j, \text{norm}}\right) + \left(1 - \sigma(g_i, w_i)\right) \cdot m_{j, \text{norm}} \right) \cdot \left(1 - \sigma(\|\Delta_{o}\|)\right) \Bigg)  + g_i
+\end{align*}
+
+where $m_{\text{max}}$ is the maximum Mahalanobis distance between any two points across all of the input data. $m_{j, \text{norm}} = \frac{m_j}{m_{\text{max}}}$ is the normalized mahalanobis distance from the original training input data to the $j^{\text{th}}$ centroid computed above since $m_j$ is the raw Mahalanobis distance. 
+
+$\sigma(g_j, w_j) = \sigma(\text{sign}(g_j) \cdot \text{sign}(w_j))$ represents a 1 if the sign of each of the values $g_j$ and $w_j$ is the same and 0 otherwise. $g_j$ represents the $j^{\text{th}}$ entry in the gradient and $w_j$ represents the $j^{\text{th}}$ weight in the weight matrix. It is used to update the gradient in the manner such that the outputs at the target layer are similar for inputs with a small Mahalanobis distance, and are disparate for different inputs. 
+
+$o_j$ is the output of the layer that $g'$ is updating when the $j^{\text{th}}$ centroid was used as input, and $o_c$ is the output of the layer given the current training point as input. Hence, $\Delta_{o} = o_j - o_c$.
+
+$\epsilon$ is a hyperparameter with a small value. $s$ is a parameter that controls the strength of the gradient with respect to how deep we want the concept nodes to be:
+
+$$s = e^{-\left(\frac{l_c}{l_t} - p_e\right)^2}$$
+
+where $l_c$ represents the index of the layer that the gradient is being applied to, $l_t$ is the total number of layers there are, $p_e$ is a value between 0 and 1 that controls how deep the concept nodes should be (0 means the inputs will represent the concepts, or the features are the concepts themselves, and 1 means the model outputs will represent the learned concepts). It is maximized and equal to 1 when $\frac{l_c}{l_t}$ is closest to $p_e$, and a value of $p_e$ such that the second-to-last or third-to-last layers contain the concept nodes is best as the direct impacts of certain concepts being present or not in the input data can be understood best there.
+
+The updated gradients are clipped to prevent exploding values destabilizing the training process. 
+
+The idea behind this is to make the output of a given layer be close to a weighted average of the outputs where $o_j$ is upweighted inversely with the mahalanobis distance from the current input to centroid $j$ in the PCA space, and to make the outputs as different as possible when the distance between a centroid and the point is large. 
+
+We also limit the number of gradients that we perturb so that we only change the gradients that have the strongest negative or positive activations (typically the top 30\% has shown good results). 
+
+Finally, to push the neurons to represent concepts, I apply weight-decay to the intermediate layers. Given the difference constraint imposed above with the weight-decay, the neurons start to represent a low-dimensional form of the required concepts to generate the correct outputs.
+
+The output is a deep layer which activates different neurons for the presence of different ideas in the input data and contains enough information to generate correct outputs. In essence, these are the model-defined most important concepts in the data. 
+
+\subsection{Influence Re-Weighting}
+
+Once a user understands what the model believes is the most important set of concepts in the input data for generating the correct output through concept-focused training, the user should be able to remove the influence of features that they determine are harmful or unfair through influence re-weighting. 
+
+The goal is to remove or decrease the influence that some concept (where a concept can be an individual feature) on the output faster than re-training the model from scratch would. Influence of concepts are measured using layer-wise relevance propagation. We explore novel techniques such as stochastic fine-tuning, inversion fine-tuning, and amplitude influence-reduction as candidates for removing feature influence. 
+
+Stochastic fine-tuning simply involves fine-tuning the machine learning model using the original training data but replacing the harmful features with stochastic variables. The model learns that these features should be ignored, and their influence is minimized. This could be extended to concepts by adding stochastic noise to the input features that are used to activate a certain harmful concept neuron from above to try to limit their influence, but I am unsure.
+
+Inversion fine-tuning is the same process but instead of replacing the harmful features with noise, the features are inverted about their dataset means in the input data. Given very little fune-tuning (so that the model doesn't learn of this inverse relationship), this could remove the influence of said feature. That is
+$$x[i] = \text{mean}(x[:, i]) - 2 \cdot (x[i] - \text{mean}(x[:, i]))$$
+
+In amplitude influence-reduction, we simply try to re construct the feature that we view as harmful using the other features and adjust the other features' weights to offset this loss. We try a greedy-select correlation approach amongst others. But, the best outcome comes from running a regression using the other features in the training data as input values and adjusting the weights in the subsequent layer to offset the change in the harmful feature's weights. The weights that are multiplied with the harmful feature are set to zero, effectively turning off this feature. The error increases with this new regime, so some fine-tuning is required at the cost of re-introducing the concept slightly. Essentially, to remove the influence of node $i'$ in a layer, we adjust the weights such that:
+\[
+w_j' = 
+\begin{cases} 
+0 & \text{if } j = i'\\
+w_j \cdot \left(1 + \frac{\|w_{i'}\|}{\sum_{k=1}^{n}w_{k}}\right) & \text{otherwise}
+\end{cases}
+\]
+
+If any of the concepts that we are trying to remove are input features, we can fine-tune and enforce that the harmful feature's weights are zero without issue. If we are trying to remove a concept, we must limit our fine-tuning or else the concept will simply be re-learned in another neuron or set of neurons. 
+
+\subsection{Weight Freezing}
+
+Finally, once a model is certified to possess certain properties by some trusted body, the deployed model must keep those properties. The stakeholders actually deploying the model likely do not want to re-run the tests locally to limit computation costs, comparing the weights of the local model against a remote version can be expensive given communication overheads, and it is risky to send weights over communication networks incase malicious actors intercept the weights and potentially run attacks to infer data or model attributes.
+
+Strong encryption of the model before communicating it over a network can limit the ability for weights to be intercepted or changed. 
+
+Local stakeholders can run an efficient hashing algorithm in a deterministic order over the important attributes (e.g. weights, activations, layer sizes, etc) of a model such as SHA-256 and compare this against the trusted body's hash of the model to see if the model still possesses the attributes that the trusted body said it does in a single communication step. The model effectively gains the trusted institution's trust. Given that hashing is not a novel concept, I refer the user to \cite{martínfernández2022analysis} for more information. 
+
+
+
+% - I stay away from images since it is difficult to judge the distance between images (maybe consider the activations of another neural network such as Resnet or AlexNet in the future)
+% - becomes progressively stronger deeper in the neural network
+% - measured with a distance metric from concepts
+% - enforced with the loss function that I have
+% - the largest coefficient in the regression was monotonically larger while the average was the same
+% - The single layer attempt was pretty ass
+% - unintended effect of making the ones that are not relevant very small regression coefficients (smaller than normal regression coefficients for attempting to fit entire dataset to regression)
+% - running this method on the prison dataset shows us certain sets of concepts and the final layer outputs' relevance to those concepts
+% - the error bars are roughly the same size across the models (although the error bars are extremely large)
+% - the inspiration comes from \cite{druc2022concept}
+
+% \subsection{Feature Importance Degradation}
+% - Other methods have tried to simple lower the amount of influence that the weights of a model have on a certain input. Instead, I adjust the other weights to account for the difference in getting the mean of the input (I also try median and stochastic input)
+% - tried dynamic programming approach with greedy covariance and correlation analysis that had worse results
+% - ran regression to predict last component and assigned weights there which worked better
+
+% \subsection{Model Security Against Tampering}
+% - once the model is certified under this framework, it is crucial that the trust is not violated by rogue actors
+% - I implement a hashing function which is a low latency way for any user to make sure that the model that they are using is valid and has not been changed since it has been verified to be explainable (and safe in other contexts that I do not consider)
+
+% Make sure to include information about how we make sure that the results are consistent across the model runs (same 
+
+
+\section{Experiment Section}
+
+\subsection{Datasets}
+
+The first dataset I use is a life insurance decisions dataset from Prudential. The dataset was released in 2016 as part of a Kaggle competition and provides anonymized insurance decisions along with a numerical representation of attributes of the applicants' health and life (e.g. income, height, weight, etc.) (\cite{PrudentialLifeInsuranceAssessment2015}).
+
+There are 59,381 entries across 128 columns with a mean height and weight across the dataset of 0.707 and 0.293, respectively, indicating a diverse range of applicants. Medical keywords are sparsely populated (as evidenced by the low mean values) and the vast majority of the data that is included in the dataset is normalized to a distribution between 0 and 1. 
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{histogram_of_insurance_age.png}
+        % \caption{Histogram of Insurance Age}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{histogram_of_weight.png}
+        % \caption{Histogram of Weight}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{histogram_of_height.png}
+        % \caption{Histogram of Height}
+    \end{subfigure}
+    \caption{Histograms of Age, Weight, and Height}
+\end{figure}
+
+
+% \begin{figure}[H]
+%     \centering
+%     % Weight by Response and Height by Response in the same row
+%     \begin{subfigure}{.5\textwidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{weight_by_response.png}
+%         \caption{Weight by Response}
+%     \end{subfigure}%
+%     \begin{subfigure}{.5\textwidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{height_by_response.png}
+%         \caption{Height by Response}
+%     \end{subfigure}
+%     \caption{Weight and Height by Response}
+% \end{figure}
+
+% % Individual figures
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.6\linewidth]{correlation_output_map.png}
+%     \caption{Correlation Output}
+% \end{figure}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.6\linewidth]{correlation_output.png}
+%     \caption{Correlation Output}
+% \end{figure}
+    
+% \begin{figure}[H]
+%     \begin{subfigure}{.5\textwidth}
+%         \centering
+%         \includegraphics[width=0.6\linewidth]{count_plot_for_product_info_1.png}
+%         \caption{Count Plot for Product Info 1}
+%     \end{subfigure}
+%     \begin{subfigure}{.5\textwidth}
+%         \centering
+%         \includegraphics[width=0.6\linewidth]{count_plot_for_product_info_2.png}
+%         \caption{Count Plot for Product Info 2}
+%     \end{subfigure}
+%     \caption{Product Information Heuristics}
+% \end{figure}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.6\linewidth]{insurance_age_by_response.png}
+%     \caption{Insurance Age by Response}
+% \end{figure}
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.6\linewidth]{response_output.png}
+%     \caption{Response Output}
+% \end{figure}
+
+
+Because the dataset is anonymized, we cannot be certain what the response values included in the dataset mean. But, an educated guess given the relative prevalence of different values might be Declined, Postponed, Rated, Standard, Preferred, Elite, Smoker, and Accepted for values 0-7. 
+
+% \subsection{Cook County Criminal Justice Dataset}
+
+The Cook County Criminal Justice Dataset comes from the Chicago Open Data City Initiative which is meant to increase transparency in the city and open the potential for researchers to propose solutions to city issues with data-driven insights (\cite{cityofchicago}, \cite{cookcountydata}). This dataset will serve as a validation dataset given its larger size and easier interpretability due to less privacy constraints. 
+
+Analyzing the data, I find that young men are dramatically over-represented in the data compared to their share of the population. Additionally, as confirmed by numerous studies (\cite{chen2022smartphone}, \cite{minor2023traffic}, \cite{aclu_illinois2015}), people of minority backgrounds are systemically more likely to experience the criminal justice system in Chicago. 
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.5\textwidth}
+    \includegraphics[width=\linewidth]{yearly_share_of_total_crimes_by_age_group.png}
+    \caption{Yearly Share of Total Crimes by Age Group}
+  \end{subfigure}%
+  \begin{subfigure}{0.5\textwidth}
+    \includegraphics[width=\linewidth]{yearly_crimes_by_age_group.png}
+    \caption{Yearly Crimes by Age Group}
+  \end{subfigure}
+  \caption{Age group distribution of crime}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.5\textwidth}
+    \includegraphics[width=\linewidth]{yearly_share_of_total_crimes_by_race.png}
+    \caption{Yearly Share of Total Crimes by Race}
+  \end{subfigure}%
+  \begin{subfigure}{0.5\textwidth}
+    \includegraphics[width=\linewidth]{yearly_crimes_by_race.png}
+    \caption{Yearly Crimes by Race}
+  \end{subfigure}
+  \caption{Racial distribution of crime}
+\end{figure}
+
+
+\subsection{Benchmarking}
+
+Training a basic neural network without concept-focused training yields good results with uninterruptible intermediate layers. As a test, I run LIME on the base neural network which has a mediocre result on the life insurance dataset, and a poor result on the criminal justice dataset. The computed relative importance values are extreme (influence coefficients with values around $\pm$ 1000) and seem to get worse with the complexity of the dataset. 
+
+Given that concept-focused training is a method to create intrinsically explainable machine learning, I fit an XGBoost model to the data as a baseline. XGBoost is a tree-based model that has been shown to be one of the most accurate explainable models (\cite{Chen_2016}). We look to the validation accuracy and Cohen's Kappa values of the models (\cite{mchugh2012interrater}).
+
+The concept-focused neural network uses the gradient boosting equation explained above to generate concept-activated neurons in the second-to-last layer of the model. The Single Layer Concept-focused Neural Network only applies the gradient boosting to the second-to-last layer (none of the layers before it). 
+
+\begin{table}[H]
+    \centering
+    \caption{Model Accuracy on Life Insurance Dataset}
+    \label{tab:model_comparison}
+    \begin{tabular}{lcc}
+    \toprule
+    Model & Kappa Cohen & Validation Accuracy (\%) \\
+    \midrule
+    Vanilla XGBoost & 0.6510 & 28.45 \\
+    Unchanged Neural Network & 0.4326 & 44.14 \\
+    Concept-focused Neural Network & 0.4127 & 43.91 \\
+    Single Layer Concept-focused Neural Network & -0.01647 & 10.37 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+I find that the introduction of concept-focused training does not degrade the neural network performance when the gradient boosting is scaled up from the start of the model to the target layer. However, when the gradient boosting is only applied to a single layer the model collapses. The higher Cohen's Kappa value but lower accuracy in XGBoost comes from the tree model being better at not over-predicting a single class. 
+
+Now, looking to the relative explainability of the models, I find that the concept-focused neural network has better explainability than the XGBoost model. 
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+    \includegraphics[width=\linewidth]{xgb_top_features.png}
+    \caption{XGBoost's Self-Reported Top Features}
+  \end{subfigure}%
+  \begin{subfigure}{0.55\textwidth}
+    \includegraphics[width=\linewidth]{full_error_bar_aug_vs_baseline_regression_coeffs.png}
+    \caption{Concept Activation of Second-to-Last Layer Neurons}
+  \end{subfigure}
+  \caption{Explainability of Investigated Models}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.5\textwidth}
+    \includegraphics[width=\linewidth]{aug_coeff_neuron_20.png}
+    \caption{}
+  \end{subfigure}%
+  \begin{subfigure}{0.5\textwidth}
+    \includegraphics[width=\linewidth]{aug_coeff_neuron_25.png}
+    \caption{}
+  \end{subfigure}
+  \caption{Concept Activation of Neurons}
+\end{figure}
+
+The XGBoost model is only able to provide high-accuracy feature importance scores for the input features. Although tree-based models can give somewhat inaccurate concept-based importances, the definitions of the concepts are rather arbitrary and it is difficult to define concepts that the model is actually using with any degree of confidence. 
+
+
+METRICS TO COMPARE
+
+
+
+
+\section{Conclusion}
+
+
+
+
+- choosing the right clustering algorithm
+- the collapsing of the single-layer focused model suggests that you need to build the concepts up over the layers of the ML model
+- the explanation of the nodes that are later in the neural network
+
+
+
+\subsection{Limitations of Method}
+- This method is still rather manual. Even though the final node activations are able to represent the concepts rather nicely, one must still define what these concepts are manually. Future iterations of this project might want to define what these concepts could be using co-dependencies in the data. 
+- There can be convergence issues and sometimes we do not see the outputs that we need to justify using the method
+- might want to look into class-informed clustering of the data for more information into the potential label
+
+\section{Reproduction of Findings}
+
+For reproduction of the findings, please refer to the Github Repository at \cite{TristanB22_2023}.
+
+
+% Please read the instructions below carefully and follow them faithfully. \textbf{Important:} This year the checklist will be submitted separately from the main paper in OpenReview, please review it well ahead of the submission deadline: \url{https://neurips.cc/public/guides/PaperChecklist}.
+
+
+% \subsection{Style}
+
+
+% Papers to be submitted to NeurIPS 2023 must be prepared according to the
+% instructions presented here. Papers may only be up to {\bf nine} pages long,
+% including figures. Additional pages \emph{containing only acknowledgments and
+% references} are allowed. Papers that exceed the page limit will not be
+% reviewed, or in any other way considered for presentation at the conference.
+
+
+% The margins in 2023 are the same as those in previous years.
+
+
+% Authors are required to use the NeurIPS \LaTeX{} style files obtainable at the
+% NeurIPS website as indicated below. Please make sure you use the current files
+% and not previous versions. Tweaking the style files may be grounds for
+% rejection.
+
+
+% \subsection{Retrieval of style files}
+
+
+% The style files for NeurIPS and other conference information are available on
+% the website at
+% \begin{center}
+%   \url{http://www.neurips.cc/}
+% \end{center}
+% The file \verb+neurips_2023.pdf+ contains these instructions and illustrates the
+% various formatting requirements your NeurIPS paper must satisfy.
+
+
+% The only supported style file for NeurIPS 2023 is \verb+neurips_2023.sty+,
+% rewritten for \LaTeXe{}.  \textbf{Previous style files for \LaTeX{} 2.09,
+%   Microsoft Word, and RTF are no longer supported!}
+
+
+% The \LaTeX{} style file contains three optional arguments: \verb+final+, which
+% creates a camera-ready copy, \verb+preprint+, which creates a preprint for
+% submission to, e.g., arXiv, and \verb+nonatbib+, which will not load the
+% \verb+natbib+ package for you in case of package clash.
+
+
+% \paragraph{Preprint option}
+% If you wish to post a preprint of your work online, e.g., on arXiv, using the
+% NeurIPS style, please use the \verb+preprint+ option. This will create a
+% nonanonymized version of your work with the text ``Preprint. Work in progress.''
+% in the footer. This version may be distributed as you see fit, as long as you do not say which conference it was submitted to. Please \textbf{do
+%   not} use the \verb+final+ option, which should \textbf{only} be used for
+% papers accepted to NeurIPS. 
+
+
+% At submission time, please omit the \verb+final+ and \verb+preprint+
+% options. This will anonymize your submission and add line numbers to aid
+% review. Please do \emph{not} refer to these line numbers in your paper as they
+% will be removed during generation of camera-ready copies.
+
+
+% The file \verb+neurips_2023.tex+ may be used as a ``shell'' for writing your
+% paper. All you have to do is replace the author, title, abstract, and text of
+% the paper with your own.
+
+
+% The formatting instructions contained in these style files are summarized in
+% Sections \ref{gen_inst}, \ref{headings}, and \ref{others} below.
+
+
+% \section{General formatting instructions}
+% \label{gen_inst}
+
+
+% The text must be confined within a rectangle 5.5~inches (33~picas) wide and
+% 9~inches (54~picas) long. The left margin is 1.5~inch (9~picas).  Use 10~point
+% type with a vertical spacing (leading) of 11~points.  Times New Roman is the
+% preferred typeface throughout, and will be selected for you by default.
+% Paragraphs are separated by \nicefrac{1}{2}~line space (5.5 points), with no
+% indentation.
+
+
+% The paper title should be 17~point, initial caps/lower case, bold, centered
+% between two horizontal rules. The top rule should be 4~points thick and the
+% bottom rule should be 1~point thick. Allow \nicefrac{1}{4}~inch space above and
+% below the title to rules. All pages should start at 1~inch (6~picas) from the
+% top of the page.
+
+
+% For the final version, authors' names are set in boldface, and each name is
+% centered above the corresponding address. The lead author's name is to be listed
+% first (left-most), and the co-authors' names (if different address) are set to
+% follow. If there is only one co-author, list both author and co-author side by
+% side.
+
+
+% Please pay special attention to the instructions in Section \ref{others}
+% regarding figures, tables, acknowledgments, and references.
+
+
+% \section{Headings: first level}
+% \label{headings}
+
+
+% All headings should be lower case (except for first word and proper nouns),
+% flush left, and bold.
+
+
+% First-level headings should be in 12-point type.
+
+
+% \subsection{Headings: second level}
+
+
+% Second-level headings should be in 10-point type.
+
+
+% \subsubsection{Headings: third level}
+
+
+% Third-level headings should be in 10-point type.
+
+
+% \paragraph{Paragraphs}
+
+
+% There is also a \verb+\paragraph+ command available, which sets the heading in
+% bold, flush left, and inline with the text, with the heading followed by 1\,em
+% of space.
+
+
+% \section{Citations, figures, tables, references}
+% \label{others}
+
+
+% These instructions apply to everyone.
+
+
+% \subsection{Citations within the text}
+
+
+% The \verb+natbib+ package will be loaded for you by default.  Citations may be
+% author/year or numeric, as long as you maintain internal consistency.  As to the
+% format of the references themselves, any style is acceptable as long as it is
+% used consistently.
+
+
+% The documentation for \verb+natbib+ may be found at
+% \begin{center}
+%   \url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
+% \end{center}
+% Of note is the command \verb+\citet+, which produces citations appropriate for
+% use in inline text.  For example,
+% \begin{verbatim}
+%    \citet{hasselmo} investigated\dots
+% \end{verbatim}
+% produces
+% \begin{quote}
+%   Hasselmo, et al.\ (1995) investigated\dots
+% \end{quote}
+
+
+% If you wish to load the \verb+natbib+ package with options, you may add the
+% following before loading the \verb+neurips_2023+ package:
+% \begin{verbatim}
+%    \PassOptionsToPackage{options}{natbib}
+% \end{verbatim}
+
+
+% If \verb+natbib+ clashes with another package you load, you can add the optional
+% argument \verb+nonatbib+ when loading the style file:
+% \begin{verbatim}
+%    \usepackage[nonatbib]{neurips_2023}
+% \end{verbatim}
+
+
+% As submission is double blind, refer to your own published work in the third
+% person. That is, use ``In the previous work of Jones et al.\ [4],'' not ``In our
+% previous work [4].'' If you cite your other papers that are not widely available
+% (e.g., a journal paper under review), use anonymous author names in the
+% citation, e.g., an author of the form ``A.\ Anonymous'' and include a copy of the anonymized paper in the supplementary material.
+
+
+% \subsection{Footnotes}
+
+
+% Footnotes should be used sparingly.  If you do require a footnote, indicate
+% footnotes with a number\footnote{Sample of the first footnote.} in the
+% text. Place the footnotes at the bottom of the page on which they appear.
+% Precede the footnote with a horizontal rule of 2~inches (12~picas).
+
+
+% Note that footnotes are properly typeset \emph{after} punctuation
+% marks.\footnote{As in this example.}
+
+
+% \subsection{Figures}
+
+
+% \begin{figure}
+%   \centering
+%   \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+%   \caption{Sample figure caption.}
+% \end{figure}
+
+
+% All artwork must be neat, clean, and legible. Lines should be dark enough for
+% purposes of reproduction. The figure number and caption always appear after the
+% figure. Place one line space before the figure caption and one line space after
+% the figure. The figure caption should be lower case (except for first word and
+% proper nouns); figures are numbered consecutively.
+
+
+% You may use color figures.  However, it is best for the figure captions and the
+% paper body to be legible if the paper is printed in either black/white or in
+% color.
+
+
+% \subsection{Tables}
+
+
+% All tables must be centered, neat, clean and legible.  The table number and
+% title always appear before the table.  See Table~\ref{sample-table}.
+
+
+% Place one line space before the table title, one line space after the
+% table title, and one line space after the table. The table title must
+% be lower case (except for first word and proper nouns); tables are
+% numbered consecutively.
+
+
+% Note that publication-quality tables \emph{do not contain vertical rules.} We
+% strongly suggest the use of the \verb+booktabs+ package, which allows for
+% typesetting high-quality, professional tables:
+% \begin{center}
+%   \url{https://www.ctan.org/pkg/booktabs}
+% \end{center}
+% This package was used to typeset Table~\ref{sample-table}.
+
+
+% \begin{table}
+%   \caption{Sample table title}
+%   \label{sample-table}
+%   \centering
+%   \begin{tabular}{lll}
+%     \toprule
+%     \multicolumn{2}{c}{Part}                   \\
+%     \cmidrule(r){1-2}
+%     Name     & Description     & Size ($\mu$m) \\
+%     \midrule
+%     Dendrite & Input terminal  & $\sim$100     \\
+%     Axon     & Output terminal & $\sim$10      \\
+%     Soma     & Cell body       & up to $10^6$  \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+% \subsection{Math}
+% Note that display math in bare TeX commands will not create correct line numbers for submission. Please use LaTeX (or AMSTeX) commands for unnumbered display math. (You really shouldn't be using \$\$ anyway; see \url{https://tex.stackexchange.com/questions/503/why-is-preferable-to} and \url{https://tex.stackexchange.com/questions/40492/what-are-the-differences-between-align-equation-and-displaymath} for more information.)
+
+% \subsection{Final instructions}
+
+% Do not change any aspects of the formatting parameters in the style files.  In
+% particular, do not modify the width or length of the rectangle the text should
+% fit into, and do not change font sizes (except perhaps in the
+% \textbf{References} section; see below). Please note that pages should be
+% numbered.
+
+
+% \section{Preparing PDF files}
+
+
+% Please prepare submission files with paper size ``US Letter,'' and not, for
+% example, ``A4.''
+
+
+% Fonts were the main cause of problems in the past years. Your PDF file must only
+% contain Type 1 or Embedded TrueType fonts. Here are a few instructions to
+% achieve this.
+
+
+% \begin{itemize}
+
+
+% \item You should directly generate PDF files using \verb+pdflatex+.
+
+
+% \item You can check which fonts a PDF files uses.  In Acrobat Reader, select the
+%   menu Files$>$Document Properties$>$Fonts and select Show All Fonts. You can
+%   also use the program \verb+pdffonts+ which comes with \verb+xpdf+ and is
+%   available out-of-the-box on most Linux machines.
+
+
+% \item \verb+xfig+ "patterned" shapes are implemented with bitmap fonts.  Use
+%   "solid" shapes instead.
+
+
+% \item The \verb+\bbold+ package almost always uses bitmap fonts.  You should use
+%   the equivalent AMS Fonts:
+% \begin{verbatim}
+%    \usepackage{amsfonts}
+% \end{verbatim}
+% followed by, e.g., \verb+\mathbb{R}+, \verb+\mathbb{N}+, or \verb+\mathbb{C}+
+% for $\mathbb{R}$, $\mathbb{N}$ or $\mathbb{C}$.  You can also use the following
+% workaround for reals, natural and complex:
+% \begin{verbatim}
+%    \newcommand{\RR}{I\!\!R} %real numbers
+%    \newcommand{\Nat}{I\!\!N} %natural numbers
+%    \newcommand{\CC}{I\!\!\!\!C} %complex numbers
+% \end{verbatim}
+% Note that \verb+amsfonts+ is automatically loaded by the \verb+amssymb+ package.
+
+
+% \end{itemize}
+
+
+% If your file contains type 3 fonts or non embedded TrueType fonts, we will ask
+% you to fix it.
+
+
+% \subsection{Margins in \LaTeX{}}
+
+
+% Most of the margin problems come from figures positioned by hand using
+% \verb+\special+ or other commands. We suggest using the command
+% \verb+\includegraphics+ from the \verb+graphicx+ package. Always specify the
+% figure width as a multiple of the line width as in the example below:
+% \begin{verbatim}
+%    \usepackage[pdftex]{graphicx} ...
+%    \includegraphics[width=0.8\linewidth]{myfile.pdf}
+% \end{verbatim}
+% See Section 4.4 in the graphics bundle documentation
+% (\url{http://mirrors.ctan.org/macros/latex/required/graphics/grfguide.pdf})
+
+
+% A number of width problems arise when \LaTeX{} cannot properly hyphenate a
+% line. Please give LaTeX hyphenation hints using the \verb+\-+ command when
+% necessary.
+
+
+% \begin{ack}
+% Use unnumbered first level headings for the acknowledgments. All acknowledgments
+% go at the end of the paper before the list of references. Moreover, you are required to declare
+% funding (financial activities supporting the submitted work) and competing interests (related financial activities outside the submitted work).
+% More information about this disclosure can be found at: \url{https://neurips.cc/Conferences/2023/PaperInformation/FundingDisclosure}.
+
+
+% Do {\bf not} include this section in the anonymized submission, only in the final paper. You can use the \texttt{ack} environment provided in the style file to autmoatically hide this section in the anonymized submission.
+% \end{ack}
+
+
+
+% \section*{Cited References}
+
+\printbibliography[keyword=cited, title={Cited References}]
+
+% \section*{Consulted References}
+
+\printbibliography[keyword=referenced, title={Consulted References}]
+
+\medskip
+
+
+
+% https://www.geeksforgeeks.org/how-to-encrypt-and-decrypt-strings-in-python/
+
+
+
+% {
+% \small
+
+
+% [1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms for
+% connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and T.K.\ Leen
+% (eds.), {\it Advances in Neural Information Processing Systems 7},
+% pp.\ 609--616. Cambridge, MA: MIT Press.
+
+
+% [2] Bower, J.M.\ \& Beeman, D.\ (1995) {\it The Book of GENESIS: Exploring
+%   Realistic Neural Models with the GEneral NEural SImulation System.}  New York:
+% TELOS/Springer--Verlag.
+
+
+% [3] Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of learning and
+% recall at excitatory recurrent synapses and cholinergic modulation in rat
+% hippocampal region CA3. {\it Journal of Neuroscience} {\bf 15}(7):5249-5262.
+% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Supplementary Material}
+
+Below, the reader can find additional material that is helpful to the understanding of the project. Figures are included with brief explanations of their relevance to the project. 
+
+\end{document}
