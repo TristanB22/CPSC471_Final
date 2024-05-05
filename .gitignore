@@ -4,10 +4,12 @@
 CPSC_471_Project_Proposal__Short_.pdf
 EDA_data/
 final_471_datasets/
+final_471_datasets/sample_submission.csv.zip
+final_471_datasets/Sentencing_20240222.csv
 in_class_coding/
 models_save/
 models/generated_images
 runthroughs/
-
+*/.DS_Store
 models/private_key.pem 
 models/public_key.pem
