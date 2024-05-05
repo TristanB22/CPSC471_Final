@@ -13,9 +13,9 @@ Within this repository, we have the following directories that have the followin
 
 | Folder Name | Purpose |
 | ------------- | ------ |
-| models | This folder contains all of the code that is needed to run the program itself. Within it, one can find files such as `health_insrurance_base_models.ipynb` which forms the core of this repository along with the private and public example keys for model encryption and decryption. If one uses any of thise code for development or personal use, please make sure to generate these keys again to mitigate against security leaks. |
+| helper_code_and_checkpoints | This directory contains helper functions and model checkpoints for executing the program and turning it into something that can be processed by LaTeX. |
 | models_save | This contains all of the checkpoints for models that we have created in the process of creating this entire repository. It has all of the models that have been saved and kept across the runthroughs of the notebook and is valuable for analysis of model performance overtime. |
-| runthroughs | This contains all of the full runs that we have performed of the most important notebooks of this directory. There is an included description for each of the folders in the readme within the sub-directory of runthroughs. |
-| references | This contains the consulted and cited sources that are used to create this project. |
+| generated_images | This contains all of the images that are important to save and not re-generate every time that the notebook is run. It includes things like 3D graphs which are not possible to save and must be turned into a png. |
+| references | This contains the consulted and cited sources that are used to create this project. It is directly used to create the citations that are found in the final report in this repository. |
 
 It is important to note that running the training process and explanation processes is extremely time- and computation-intensive, so please be wary of where the note books are run and respectful of resources. 
