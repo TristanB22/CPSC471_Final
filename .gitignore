@@ -7,5 +7,6 @@ final_471_datasets/
 in_class_coding/
 models/private_key.pem 
 models/public_key.pem
-# models_save/
-# runthroughs/
+models_save/
+models/generated_images
+runthroughs/

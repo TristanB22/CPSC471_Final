@@ -38,6 +38,11 @@
 \usepackage{subcaption} 
 \usepackage{float}
 
+% for making nice tables
+\usepackage{geometry} 
+\usepackage{tabularx} 
+\usepackage{booktabs}
+
 \usepackage[backend=biber, style=apa, citestyle=apa]{biblatex}
 
 \addbibresource{cited_references.bib}
@@ -156,9 +161,9 @@ Using my approach as a basis, machine learning models can begin to be deployed i
 
 \subsection{Concept-Focused Training}
 
-Using a custom-defined loss function, I manipulate the gradients during training such that the parameters force the activations of neurons to represent patterns or ideas that the model will decide on. The inspiration for this process comes from \cite{druc2022concept}. Instead of training surrogate models to differentiate concepts, they are simply integrated into the node activations. 
+Using a custom-defined loss function, I manipulate the gradients during training such that the parameters force the activations of neurons to represent patterns or ideas that the model will decide on. The inspiration for this process comes from \cite{druc2022concept}. Instead of training surrogate models to differentiate concepts, they are simply integrated into the node activations. The idea is that for any parameter configuration that is not at the absolute local minimum for data (which most models are not), there exists a manifold of model parameters that produce the same loss value. I aim to train the model such that it finds the optimal parameter configuration on that manifold for explainability.
 
-Before training the model, I run PCA on the input data to get embeddings with minimized noise for the data points. By doing so, we can exploit the fact that PCA finds a low-dimensional representation while maintaining the most important features and variance for distinguishing classes (\cite{Kwak2003Feature}).
+Before training the model, I run PCA on the input data to get embeddings with minimized noise for the data points. By doing so, we can exploit the fact that PCA finds a low-dimensional representation while maintaining the most important features and variance for distinguishing classes (\cite{Kwak2003Feature}). The embeddings can be found in Figures \ref{fig:pca_subplot_1}, \ref{fig:pca_subplot_2}, and \ref{fig:pca_subplot_3}. An example number of data points with the minimum distance to each centroid is found in Figure \ref{fig:min_dist_hist}.
 
 After running PCA, I run a clustering algorithm to generate $C$ centroids for the data where $C$ is a user-defined hyperparameter. I have found that the best results come when $C$ is equal to roughly $\frac{\sqrt{n}}{5}$ of the dimensionality of the data $n$. These centroids will essentially represent distinct concepts or ideas present in the data, and a point's distance to these centroids judges how likely the point is to include the centroids' concepts.
 
@@ -168,14 +173,12 @@ Finally, for each of the training data points we compute the Mahalanobis Distanc
 
 Then, train the model using the original training data (not the PCA-decomposed version) where the same loss as normal is used. However, instead of applying the normal gradient to each parameter at each update step, transform the gradient $g_i$ into $g_i'$ for a single parameter $i$ in the model as follows:
 
-$$
-% g_i' =  \frac{s}{C} \sum_{j=1}^{C} \left( \left( \left( 1 - \sigma(g_i, w_i) \right) \cdot \left( 1 - m_{j, \text{norm}} \right)  +  \sigma(g_i, w_i) \cdot m_{j, \text{norm}} \right) \cdot \left( \sigma(\|\Delta_{o}\| \right) + \left( \left( \sigma(g_i, w_i) \cdot \left( 1 - m_{j, \text{norm}}\right) + \left( 1 - \sigma(g_i, w_i) \right) \cdot \left( m_{j, \text{norm}} \right)\right) \cdot \left( 1 - \sigma(\|\Delta_{o}\| \right) \right) \right) $$
-
-
+\vspace{-5mm}
 \begin{align*}
 g_i' &= \epsilon \cdot \frac{s}{C} \sum_{j=1}^{C} \Bigg( \left( \left(1 - \sigma(g_i, w_i)\right) \cdot \left(1 - m_{j, \text{norm}}\right) + \sigma(g_i, w_i) \cdot m_{j, \text{norm}} \right) \cdot \sigma(\|\Delta_{o}\|) \\
 &\quad + \left( \sigma(g_i, w_i) \cdot \left(1 - m_{j, \text{norm}}\right) + \left(1 - \sigma(g_i, w_i)\right) \cdot m_{j, \text{norm}} \right) \cdot \left(1 - \sigma(\|\Delta_{o}\|)\right) \Bigg)  + g_i
 \end{align*}
+\vspace{-5mm}
 
 where $m_{\text{max}}$ is the maximum Mahalanobis distance between any two points across all of the input data. $m_{j, \text{norm}} = \frac{m_j}{m_{\text{max}}}$ is the normalized mahalanobis distance from the original training input data to the $j^{\text{th}}$ centroid computed above since $m_j$ is the raw Mahalanobis distance. 
 
@@ -262,7 +265,7 @@ The first dataset I use is a life insurance decisions dataset from Prudential. T
 
 There are 59,381 entries across 128 columns with a mean height and weight across the dataset of 0.707 and 0.293, respectively, indicating a diverse range of applicants. Medical keywords are sparsely populated (as evidenced by the low mean values) and the vast majority of the data that is included in the dataset is normalized to a distribution between 0 and 1. 
 
-\begin{figure}[H]
+\begin{figure}[htbp]
     \centering
     \begin{subfigure}{.33\textwidth}
         \centering
@@ -283,7 +286,7 @@ There are 59,381 entries across 128 columns with a mean height and weight across
 \end{figure}
 
 
-% \begin{figure}[H]
+% \begin{figure}[htbp]
 %     \centering
 %     % Weight by Response and Height by Response in the same row
 %     \begin{subfigure}{.5\textwidth}
@@ -300,19 +303,19 @@ There are 59,381 entries across 128 columns with a mean height and weight across
 % \end{figure}
 
 % % Individual figures
-% \begin{figure}[H]
+% \begin{figure}[htbp]
 %     \centering
 %     \includegraphics[width=0.6\linewidth]{correlation_output_map.png}
 %     \caption{Correlation Output}
 % \end{figure}
 
-% \begin{figure}[H]
+% \begin{figure}[htbp]
 %     \centering
 %     \includegraphics[width=0.6\linewidth]{correlation_output.png}
 %     \caption{Correlation Output}
 % \end{figure}
     
-% \begin{figure}[H]
+% \begin{figure}[htbp]
 %     \begin{subfigure}{.5\textwidth}
 %         \centering
 %         \includegraphics[width=0.6\linewidth]{count_plot_for_product_info_1.png}
@@ -326,13 +329,13 @@ There are 59,381 entries across 128 columns with a mean height and weight across
 %     \caption{Product Information Heuristics}
 % \end{figure}
 
-% \begin{figure}[H]
+% \begin{figure}[htbp]
 %     \centering
 %     \includegraphics[width=0.6\linewidth]{insurance_age_by_response.png}
 %     \caption{Insurance Age by Response}
 % \end{figure}
 
-% \begin{figure}[H]
+% \begin{figure}[htbp]
 %     \centering
 %     \includegraphics[width=0.6\linewidth]{response_output.png}
 %     \caption{Response Output}
@@ -347,20 +350,20 @@ The Cook County Criminal Justice Dataset comes from the Chicago Open Data City I
 
 Analyzing the data, I find that young men are dramatically over-represented in the data compared to their share of the population. Additionally, as confirmed by numerous studies (\cite{chen2022smartphone}, \cite{minor2023traffic}, \cite{aclu_illinois2015}), people of minority backgrounds are systemically more likely to experience the criminal justice system in Chicago. 
 
-\begin{figure}[H]
-  \centering
-  \begin{subfigure}{0.5\textwidth}
-    \includegraphics[width=\linewidth]{yearly_share_of_total_crimes_by_age_group.png}
-    \caption{Yearly Share of Total Crimes by Age Group}
-  \end{subfigure}%
-  \begin{subfigure}{0.5\textwidth}
-    \includegraphics[width=\linewidth]{yearly_crimes_by_age_group.png}
-    \caption{Yearly Crimes by Age Group}
-  \end{subfigure}
-  \caption{Age group distribution of crime}
-\end{figure}
+% \begin{figure}[htbp]
+%   \centering
+%   \begin{subfigure}{0.5\textwidth}
+%     \includegraphics[width=\linewidth]{yearly_share_of_total_crimes_by_age_group.png}
+%     \caption{Yearly Share of Total Crimes by Age Group}
+%   \end{subfigure}%
+%   \begin{subfigure}{0.5\textwidth}
+%     \includegraphics[width=\linewidth]{yearly_crimes_by_age_group.png}
+%     \caption{Yearly Crimes by Age Group}
+%   \end{subfigure}
+%   \caption{Age group distribution of crime}
+% \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}{0.5\textwidth}
     \includegraphics[width=\linewidth]{yearly_share_of_total_crimes_by_race.png}
@@ -380,11 +383,11 @@ Training a basic neural network without concept-focused training yields good res
 
 Given that concept-focused training is a method to create intrinsically explainable machine learning, I fit an XGBoost model to the data as a baseline. XGBoost is a tree-based model that has been shown to be one of the most accurate explainable models (\cite{Chen_2016}). We look to the validation accuracy and Cohen's Kappa values of the models (\cite{mchugh2012interrater}).
 
-The concept-focused neural network uses the gradient boosting equation explained above to generate concept-activated neurons in the second-to-last layer of the model. The Single Layer Concept-focused Neural Network only applies the gradient boosting to the second-to-last layer (none of the layers before it). 
+The concept-focused neural network uses the gradient boosting equation explained above to generate concept-activated neurons in the second-to-last layer of the model. The Single Layer Concept-focused Neural Network only applies the gradient boosting to the second-to-last layer (none of the layers before it). All networks have a structure the same as the structrue in Figure \ref{fig:nn_aug_structure}.
 
-\begin{table}[H]
+\begin{table}[htbp]
     \centering
-    \caption{Model Accuracy on Life Insurance Dataset}
+    \caption{Average Model Performance}
     \label{tab:model_comparison}
     \begin{tabular}{lcc}
     \toprule
@@ -402,36 +405,82 @@ I find that the introduction of concept-focused training does not degrade the ne
 
 Now, looking to the relative explainability of the models, I find that the concept-focused neural network has better explainability than the XGBoost model. 
 
-\begin{figure}[H]
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}{0.45\textwidth}
     \includegraphics[width=\linewidth]{xgb_top_features.png}
     \caption{XGBoost's Self-Reported Top Features}
   \end{subfigure}%
   \begin{subfigure}{0.55\textwidth}
-    \includegraphics[width=\linewidth]{full_error_bar_aug_vs_baseline_regression_coeffs.png}
+    \includegraphics[width=\linewidth]{ABSOLUTE_double_importance_full_error_bar_aug_vs_baseline_regression_coeffs.png}
     \caption{Concept Activation of Second-to-Last Layer Neurons}
+    \label{fig:C-explain}
   \end{subfigure}
   \caption{Explainability of Investigated Models}
 \end{figure}
 
-\begin{figure}[H]
+\begin{figure}[htbp]
   \centering
   \begin{subfigure}{0.5\textwidth}
     \includegraphics[width=\linewidth]{aug_coeff_neuron_20.png}
-    \caption{}
+    \caption{A concept network neuron with weak concept utilization}
+    \label{fig:C-node_example_weak}
   \end{subfigure}%
   \begin{subfigure}{0.5\textwidth}
     \includegraphics[width=\linewidth]{aug_coeff_neuron_25.png}
-    \caption{}
+    \caption{A concept network neuron with strong concept utilization}
+    \label{fig:C-node_example_strong}
   \end{subfigure}
   \caption{Concept Activation of Neurons}
 \end{figure}
 
 The XGBoost model is only able to provide high-accuracy feature importance scores for the input features. Although tree-based models can give somewhat inaccurate concept-based importances, the definitions of the concepts are rather arbitrary and it is difficult to define concepts that the model is actually using with any degree of confidence. 
 
+On the other hand, in the concept-focused model, I use established methods such as SHAP and GradCAM to get average individual feature importance in the model in only slightly more time than XGBoost's explanation framework and intrinsic concept explanations instantly given the concept-focused training. In Figure \ref{fig:C-explain}, we plot the augmented model trained on the PCA's maximal coefficients (which has the largest spike on the left), the augmented model trained on the full input with PCA distance (the second highest on the left), the un-augmented model trained on PCA, and the un-augmented model trained on the full input. The augmented model has several neurons  which represent combinations of subsets of the model-defined concepts with high fidelity (the left side of the graph), while the rest of the neurons possess residual information for making decisions. We run a regression on each of the neurons to find out which are most correlated with weighted combinations of concepts, and can clearly see a subset of the neurons using the PCA-defined concepts. The later coefficients revert to normal with relatively high output influence which signifies important residual information. 
 
-METRICS TO COMPARE
+Since the neurons' computed influence on the output has positive covariance with the concept alignment, we know that the final layer of the model is using the concepts to, in large part, compute the final model output. One can think of the total effect of the concept on the output as the magnitude of the regression coefficient times the node importance. The average magnitude is plotted in the supplementary portion of this report at Figures \ref{fig:avg_concept_importance}, \ref{fig:sans_normalized_concept_plot}, \ref{fig:aug_vs_baseline_regression_coeffs}, and \ref{fig:error_bar_aug_vs_baseline_regression_coeffs}. 
+
+In Figure \ref{fig:C-node_example_weak} we see an example of a neuron in the later layers that does not strongly use the model-defined concepts to make its decision. This is also a neuron with very weak influence on the output after training because of the weight-decay. On the other hand, Figure \ref{fig:C-node_example_strong} shows an example of a neuron that uses a concept which is a combination of concepts 0 and 1, and the opposite of 3 and 4. To give an example in the context of the datasets, if the model decides concept 0 is a combination of features to represent violence exposure during childhood, concept 1 represents the violence level of the crime, concept 3 represents the employment status of the convicted, and concept 4 is the racial bias of the arresting county's police force, this neuron would be highly informative to the model output, potentially indicating the individual's likelihood to recidivate.
+
+With the concept-focused model, we can work to remove the unfair concepts using influence re-weighting. For each of the methods described above, we test how effectively the method removes each of the concepts defined by principal components. As we remove later principal components, it should get easier to mitigate the loss increase due to the nature of principal components. Refer to Table \ref{tab:full_ablation_table} for the full study. 
+
+\vspace{-10mm}
+\begin{table}[htbp]
+    \centering
+    \caption{Ablation Study of Removing Different Principal Components' Influence Impact on Val Loss }
+    \label{tab:val_ablation_study}
+    \begin{tabular}{lccccc}  % Adjusted for three data columns
+    \toprule
+    Reduction Method & PC 0 (\%) & PC 2 (\%) & PC 5 (\%) & PC 7 (\%) & PC 9 (\%) \\  % Corrected headers with units
+    \midrule
+    Amplitude Reduction & 1.90 & 1.86 & 1.86 & 1.86 & 1.88\\
+    Stochastic Fine Tuning & 1.23 & 1.23 & 1.25 & 1.41 & 1.29\\
+    Inversion Fine Tuning & 0.05 & 0.01 & 0.09 & 0.19 & 0.05\\
+    Simple Retraining & 0.99 & 0.98 & 0.96 & 1.25 & 1.16\\
+    \bottomrule
+    \end{tabular}
+\end{table}
+
+\vspace{-15mm}
+\begin{table}[htbp]
+    \centering
+    \caption{Average Influence Reduction per Function from Removing Principal Components}
+    \label{tab:imp_ablation_study}
+    \begin{tabular}{lccccc}  % Adjusted for three data columns
+    \toprule
+    Reduction Method & PC 0 (\%) & PC 2 (\%) & PC 5 (\%) & PC 7 (\%) & PC 9 (\%) \\  % Corrected headers with units
+    \midrule
+    Amplitude Reduction & -100.00 & -100.00 & -100.00 & -100.00 & -100.00 \\
+    Stochastic Fine Tuning & -65.93 & -68.57 & -73.66 & -66.78 & -65.39 \\
+    Inversion Fine Tuning & -22.73 & -23.48 & -24.75 & -22.88 & -21.85 \\
+    Simple Retraining & -100.00 & -100.00 & -100.00 & -100.00 & -100.00 \\
+    \bottomrule
+    \end{tabular}
+\end{table}
+\vspace{-5mm}
+
+As seen by comparing Table \ref{tab:val_ablation_study} and Table \ref{tab:imp_ablation_study}, each of the PCA components have relatively equal influence on the output of the model. Removing any single concept increases the validation loss. Additionally, the model doesn't seem to be affected until the concept is at least 50\% removed when validation loss shoots up. 
+
 
 
 
@@ -455,6 +504,1095 @@ METRICS TO COMPARE
 \section{Reproduction of Findings}
 
 For reproduction of the findings, please refer to the Github Repository at \cite{TristanB22_2023}.
+
+
+
+
+% \section*{Cited References}
+
+\printbibliography[keyword=cited, title={Cited References}]
+
+% \section*{Consulted References}
+
+\printbibliography[keyword=referenced, title={Consulted References}]
+
+\medskip
+
+
+
+% https://www.geeksforgeeks.org/how-to-encrypt-and-decrypt-strings-in-python/
+
+
+
+% {
+% \small
+
+
+% [1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms for
+% connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and T.K.\ Leen
+% (eds.), {\it Advances in Neural Information Processing Systems 7},
+% pp.\ 609--616. Cambridge, MA: MIT Press.
+
+
+% [2] Bower, J.M.\ \& Beeman, D.\ (1995) {\it The Book of GENESIS: Exploring
+%   Realistic Neural Models with the GEneral NEural SImulation System.}  New York:
+% TELOS/Springer--Verlag.
+
+
+% [3] Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of learning and
+% recall at excitatory recurrent synapses and cholinergic modulation in rat
+% hippocampal region CA3. {\it Journal of Neuroscience} {\bf 15}(7):5249-5262.
+% }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagebreak
+\section{Supplementary Material}
+
+Below, the reader can find additional material that is helpful to the understanding of the project. Figures are included with brief explanations of their relevance to the project. 
+
+
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{AVERAGE_double_importance_full_error_bar_aug_vs_baseline_regression_coeffs.png}
+        \caption{Average Concept Importances with Normalized}
+        \label{fig:avg_concept_importance}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_error_bar_aug_vs_baseline_regression_coeffs.png}
+        \caption{Concept Importances without Normalized}
+        \label{fig:sans_normalized_concept_plot}
+    \end{subfigure}%
+    \caption{Concept Importance Graphs}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_vs_baseline_regression_coeffs.png}
+        \label{fig:aug_vs_baseline_regression_coeffs}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{error_bar_aug_vs_baseline_regression_coeffs.png}
+        \label{fig:error_bar_aug_vs_baseline_regression_coeffs}
+    \end{subfigure}%
+    \caption{Concept Importance Graphs}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{pca_subplot_1.png}
+        \label{fig:pca_subplot_1}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{pca_subplot_2.png}
+        \label{fig:pca_subplot_1}
+    \end{subfigure}%
+    \caption{First and Second Sets of Principal Components with Centroids}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{pca_subplot_3.png}
+        \label{fig:pca_subplot_3}
+    \end{subfigure}%
+    % \begin{subfigure}{.5\textwidth}
+    %     \centering
+    %     \includegraphics[width=\linewidth]{}
+    %     \caption{}
+    %     \label{fig:}
+    % \end{subfigure}%
+    \caption{Third set of Principal Components with Centroids}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{base_nn_predicted_train.png}
+        \caption{Base Neural Network Train Accuracy}
+        \label{fig:base_nn_predicted_train}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{xgb_actual_train.png}
+        \caption{XGBoost Train Accuracy}
+        \label{fig:xgb_actual_train}
+    \end{subfigure}%
+    \caption{Baseline Model Accuracy}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{nn_aug_structure.png}
+        \caption{Neural Network Structure}
+        \label{fig:nn_aug_structure}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{min_dist_hist.png}
+        \caption{Minimum Distance from Centroids Histogram}
+        \label{fig:min_dist_hist}
+    \end{subfigure}%
+\end{figure}
+
+
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_0_node.png}
+        \caption{}
+        \label{fig:aug_neuron_0}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_1_node.png}
+        \caption{}
+        \label{fig:aug_neuron_1}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_2_node.png}
+        \caption{}
+        \label{fig:aug_neuron_2}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 0, 1, and 2}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_3_node.png}
+        \caption{}
+        \label{fig:aug_neuron_3}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_4_node.png}
+        \caption{}
+        \label{fig:aug_neuron_4}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_5_node.png}
+        \caption{}
+        \label{fig:aug_neuron_5}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 3, 4, and 5}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_6_node.png}
+        \caption{}
+        \label{fig:aug_neuron_6}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_7_node.png}
+        \caption{}
+        \label{fig:aug_neuron_7}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_8_node.png}
+        \caption{}
+        \label{fig:aug_neuron_8}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 6, 7, and 8}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_9_node.png}
+        \caption{}
+        \label{fig:aug_neuron_9}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_10_node.png}
+        \caption{}
+        \label{fig:aug_neuron_10}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_11_node.png}
+        \caption{}
+        \label{fig:aug_neuron_11}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 9, 10, and 11}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_12_node.png}
+        \caption{}
+        \label{fig:aug_neuron_12}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_13_node.png}
+        \caption{}
+        \label{fig:aug_neuron_13}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_14_node.png}
+        \caption{}
+        \label{fig:aug_neuron_14}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 12, 13, and 14}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_15_node.png}
+        \caption{}
+        \label{fig:aug_neuron_15}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_16_node.png}
+        \caption{}
+        \label{fig:aug_neuron_16}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_17_node.png}
+        \caption{}
+        \label{fig:aug_neuron_17}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 15, 16, and 17}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_18_node.png}
+        \caption{}
+        \label{fig:aug_neuron_18}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_19_node.png}
+        \caption{}
+        \label{fig:aug_neuron_19}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_20_node.png}
+        \caption{}
+        \label{fig:aug_neuron_20}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 18, 19, and 20}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_21_node.png}
+        \caption{}
+        \label{fig:aug_neuron_21}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_22_node.png}
+        \caption{}
+        \label{fig:aug_neuron_22}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_23_node.png}
+        \caption{}
+        \label{fig:aug_neuron_23}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 21, 22, and 23}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_24_node.png}
+        \caption{}
+        \label{fig:aug_neuron_24}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_25_node.png}
+        \caption{}
+        \label{fig:aug_neuron_25}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_26_node.png}
+        \caption{}
+        \label{fig:aug_neuron_26}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 24, 25, and 26}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_27_node.png}
+        \caption{}
+        \label{fig:aug_neuron_27}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_28_node.png}
+        \caption{}
+        \label{fig:aug_neuron_28}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_29_node.png}
+        \caption{}
+        \label{fig:aug_neuron_29}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 27, 28, and 29}
+\end{figure}
+
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_30_node.png}
+        \caption{}
+        \label{fig:aug_neuron_30}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_plt_coeff_31_node.png}
+        \caption{}
+        \label{fig:aug_neuron_31}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Baseline Neurons 30 and 31}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_abs_coeff.png}
+        \caption{Baseline Coefficient Histogram}
+        \label{fig:baseline_abs_coeff}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{baseline_reg_coeff_dist_hist.png}
+        \caption{Baseline Histogram of All Coefficients}
+        \label{fig:baseline_reg_coeff_dist_hist}
+    \end{subfigure}%
+    \caption{Regression Coefficients for All Regression in Baseline}
+\end{figure}
+
+
+
+
+
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_0_node.png}
+        \caption{}
+        \label{fig:aug_neuron_0}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_1_node.png}
+        \caption{}
+        \label{fig:aug_neuron_1}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_2_node.png}
+        \caption{}
+        \label{fig:aug_neuron_2}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 0, 1, and 2}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_3_node.png}
+        \caption{}
+        \label{fig:aug_neuron_3}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_4_node.png}
+        \caption{}
+        \label{fig:aug_neuron_4}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_5_node.png}
+        \caption{}
+        \label{fig:aug_neuron_5}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 3, 4, and 5}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_6_node.png}
+        \caption{}
+        \label{fig:aug_neuron_6}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_7_node.png}
+        \caption{}
+        \label{fig:aug_neuron_7}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_8_node.png}
+        \caption{}
+        \label{fig:aug_neuron_8}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 6, 7, and 8}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_9_node.png}
+        \caption{}
+        \label{fig:aug_neuron_9}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_10_node.png}
+        \caption{}
+        \label{fig:aug_neuron_10}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_11_node.png}
+        \caption{}
+        \label{fig:aug_neuron_11}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 9, 10, and 11}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_12_node.png}
+        \caption{}
+        \label{fig:aug_neuron_12}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_13_node.png}
+        \caption{}
+        \label{fig:aug_neuron_13}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_14_node.png}
+        \caption{}
+        \label{fig:aug_neuron_14}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 12, 13, and 14}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_15_node.png}
+        \caption{}
+        \label{fig:aug_neuron_15}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_16_node.png}
+        \caption{}
+        \label{fig:aug_neuron_16}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_17_node.png}
+        \caption{}
+        \label{fig:aug_neuron_17}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 15, 16, and 17}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_18_node.png}
+        \caption{}
+        \label{fig:aug_neuron_18}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_19_node.png}
+        \caption{}
+        \label{fig:aug_neuron_19}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_20_node.png}
+        \caption{}
+        \label{fig:aug_neuron_20}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 18, 19, and 20}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_21_node.png}
+        \caption{}
+        \label{fig:aug_neuron_21}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_22_node.png}
+        \caption{}
+        \label{fig:aug_neuron_22}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_23_node.png}
+        \caption{}
+        \label{fig:aug_neuron_23}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 21, 22, and 23}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_24_node.png}
+        \caption{}
+        \label{fig:aug_neuron_24}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_25_node.png}
+        \caption{}
+        \label{fig:aug_neuron_25}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_26_node.png}
+        \caption{}
+        \label{fig:aug_neuron_26}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 24, 25, and 26}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_27_node.png}
+        \caption{}
+        \label{fig:aug_neuron_27}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_28_node.png}
+        \caption{}
+        \label{fig:aug_neuron_28}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_29_node.png}
+        \caption{}
+        \label{fig:aug_neuron_29}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 27, 28, and 29}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_30_node.png}
+        \caption{}
+        \label{fig:aug_neuron_30}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_plt_coeff_31_node.png}
+        \caption{}
+        \label{fig:aug_neuron_31}
+    \end{subfigure}%
+    \caption{Regression Coefficients for Augmented Neurons 30 and 31}
+\end{figure}
+
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_abs_coeff.png}
+        \caption{Augmented Coefficient Histogram}
+        \label{fig:aug_abs_coeff}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{aug_reg_coeff_dist_hist.png}
+        \caption{Augmented Histogram of All Coefficients}
+        \label{fig:aug_reg_coeff_dist_hist}
+    \end{subfigure}%
+    \caption{Augmented Regression Coefficients for All Regression}
+\end{figure}
+
+
+
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_0_node.png}
+        \caption{}
+        \label{fig:full_neuron_0}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_1_node.png}
+        \caption{}
+        \label{fig:full_neuron_1}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_2_node.png}
+        \caption{}
+        \label{fig:full_neuron_2}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 0, 1, and 2}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_3_node.png}
+        \caption{}
+        \label{fig:full_neuron_3}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_4_node.png}
+        \caption{}
+        \label{fig:full_neuron_4}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_5_node.png}
+        \caption{}
+        \label{fig:full_neuron_5}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 3, 4, and 5}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_6_node.png}
+        \caption{}
+        \label{fig:full_neuron_6}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_7_node.png}
+        \caption{}
+        \label{fig:full_neuron_7}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_8_node.png}
+        \caption{}
+        \label{fig:full_neuron_8}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 6, 7, and 8}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_9_node.png}
+        \caption{}
+        \label{fig:full_neuron_9}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_10_node.png}
+        \caption{}
+        \label{fig:full_neuron_10}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_11_node.png}
+        \caption{}
+        \label{fig:full_neuron_11}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 9, 10, and 11}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_12_node.png}
+        \caption{}
+        \label{fig:full_neuron_12}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_13_node.png}
+        \caption{}
+        \label{fig:full_neuron_13}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_14_node.png}
+        \caption{}
+        \label{fig:full_neuron_14}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 12, 13, and 14}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_15_node.png}
+        \caption{}
+        \label{fig:full_neuron_15}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_16_node.png}
+        \caption{}
+        \label{fig:full_neuron_16}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_17_node.png}
+        \caption{}
+        \label{fig:full_neuron_17}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 15, 16, and 17}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_18_node.png}
+        \caption{}
+        \label{fig:full_neuron_18}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_19_node.png}
+        \caption{}
+        \label{fig:full_neuron_19}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_20_node.png}
+        \caption{}
+        \label{fig:full_neuron_20}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 18, 19, and 20}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_21_node.png}
+        \caption{}
+        \label{fig:full_neuron_21}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_22_node.png}
+        \caption{}
+        \label{fig:full_neuron_22}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_23_node.png}
+        \caption{}
+        \label{fig:full_neuron_23}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 21, 22, and 23}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_24_node.png}
+        \caption{}
+        \label{fig:full_neuron_24}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_25_node.png}
+        \caption{}
+        \label{fig:full_neuron_25}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_26_node.png}
+        \caption{}
+        \label{fig:full_neuron_26}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 24, 25, and 26}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_27_node.png}
+        \caption{}
+        \label{fig:full_neuron_27}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_28_node.png}
+        \caption{}
+        \label{fig:full_neuron_28}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_29_node.png}
+        \caption{}
+        \label{fig:full_neuron_29}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 27, 28, and 29}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_30_node.png}
+        \caption{}
+        \label{fig:full_neuron_30}
+    \end{subfigure}%
+    \begin{subfigure}{.33\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_plt_coeff_31_node.png}
+        \caption{}
+        \label{fig:full_neuron_31}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for Augmented Neurons 30 and 31}
+\end{figure}
+
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_aug_abs_coeff.png}
+        \caption{Full Input Coefficient Histogram}
+        \label{fig:full_aug_abs_coeff}
+    \end{subfigure}%
+    \begin{subfigure}{.5\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_reg_coeff_dist_hist.png}
+        \caption{Full Input Histogram of All Coefficients}
+        \label{fig:full_reg_coeff_dist_hist}
+    \end{subfigure}%
+    \caption{Full Input Regression Coefficients for All Regression}
+\end{figure}
+
+
+
+
+
+
+\pagebreak
+\begin{table}[htbp]
+\centering
+\caption{Results for Removing Feature Influence by Different Methods}
+\label{tab:full_ablation_table}
+\begin{tabularx}{\textwidth}{|c|X|X|X|X|}
+\hline
+\textbf{ } & \textbf{Method} & \textbf{Validation Loss} & \textbf{Loss \% Change} & \textbf{Importance Reduction \%} \\
+\hline
+\multicolumn{5}{|c|}{Feature 0} \\
+\hline
+& amplitude\_reduction & 1.5313 & 1.90 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5212 & 1.23 & -65.93 \\
+& inversion\_fine\_tuning & 1.5035 & 0.05 & -22.73 \\
+& simple\_retraining & 1.5177 & 0.99 & -100.00 \\
+\hline
+\multicolumn{5}{|c|}{Feature 1} \\
+\hline
+& amplitude\_reduction & 1.5306 & 1.85 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5208 & 1.20 & -67.40 \\
+& inversion\_fine\_tuning & 1.5049 & 0.14 & -21.84 \\
+& simple\_retraining & 1.5220 & 1.28 & -100.00 \\
+\hline
+\multicolumn{5}{|c|}{Feature 2} \\
+\hline
+& amplitude\_reduction & 1.5307 & 1.86 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5213 & 1.23 & -68.57 \\
+& inversion\_fine\_tuning & 1.5043 & 0.10 & -23.48 \\
+& simple\_retraining & 1.5175 & 0.98 & -100.00 \\
+\hline
+\multicolumn{5}{|c|}{Feature 3} \\
+\hline
+& amplitude\_reduction & 1.5298 & 1.80 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5221 & 1.28 & -68.39 \\
+& inversion\_fine\_tuning & 1.5036 & 0.05 & -25.63 \\
+& simple\_retraining & 1.5246 & 1.45 & -100.00 \\
+\hline
+\multicolumn{5}{|c|}{Feature 4} \\
+\hline
+& amplitude\_reduction & 1.5325 & 1.98 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5223 & 1.30 & -68.70 \\
+& inversion\_fine\_tuning & 1.5042 & 0.09 & -23.88 \\
+& simple\_retraining & 1.5250 & 1.48 & -100.00 \\
+\hline
+\multicolumn{5}{|c|}{Feature 5} \\
+\hline
+& amplitude\_reduction & 1.5308 & 1.86 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5216 & 1.25 & -73.66 \\
+& inversion\_fine\_tuning & 1.5042 & 0.09 & -24.75 \\
+& simple\_retraining & 1.5172 & 0.96 & -100.00 \\
+\hline
+\multicolumn{5}{|c|}{Feature 6} \\
+\hline
+& amplitude\_reduction & 1.5308 & 1.87 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5223 & 1.30 & -65.87 \\
+& inversion\_fine\_tuning & 1.5037 & 0.06 & -23.23 \\
+& simple\_retraining & 1.5199 & 1.14 & -100.00 \\
+\hline
+\multicolumn{5}{|c|}{Feature 7} \\
+\hline
+& amplitude\_reduction & 1.5307 & 1.86 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5239 & 1.41 & -66.78 \\
+& inversion\_fine\_tuning & 1.5057 & 0.19 & -22.88 \\
+& simple\_retraining & 1.5216 & 1.25 & -100.00 \\
+\hline
+\multicolumn{5}{|c|}{Feature 8} \\
+\hline
+& amplitude\_reduction & 1.5306 & 1.85 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5223 & 1.30 & -66.80 \\
+& inversion\_fine\_tuning & 1.5041 & 0.09 & -18.94 \\
+& simple\_retraining & 1.5209 & 1.21 & -100.00 \\
+\hline
+\multicolumn{5}{|c|}{Feature 9} \\
+\hline
+& amplitude\_reduction & 1.5311 & 1.88 & -100.00 \\
+& stochastic\_fine\_tuning & 1.5222 & 1.29 & -65.39 \\
+& inversion\_fine\_tuning & 1.5036 & 0.05 & -21.85 \\
+& simple\_retraining & 1.5202 & 1.16 & -100.00 \\
+\hline
+
+\end{tabularx}
+\end{table}
+
+\end{document}
+
+
+
+
+
+
 
 
 % Please read the instructions below carefully and follow them faithfully. \textbf{Important:} This year the checklist will be submitted separately from the main paper in OpenReview, please review it well ahead of the submission deadline: \url{https://neurips.cc/public/guides/PaperChecklist}.
@@ -808,47 +1946,3 @@ For reproduction of the findings, please refer to the Github Repository at \cite
 
 
 
-% \section*{Cited References}
-
-\printbibliography[keyword=cited, title={Cited References}]
-
-% \section*{Consulted References}
-
-\printbibliography[keyword=referenced, title={Consulted References}]
-
-\medskip
-
-
-
-% https://www.geeksforgeeks.org/how-to-encrypt-and-decrypt-strings-in-python/
-
-
-
-% {
-% \small
-
-
-% [1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms for
-% connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and T.K.\ Leen
-% (eds.), {\it Advances in Neural Information Processing Systems 7},
-% pp.\ 609--616. Cambridge, MA: MIT Press.
-
-
-% [2] Bower, J.M.\ \& Beeman, D.\ (1995) {\it The Book of GENESIS: Exploring
-%   Realistic Neural Models with the GEneral NEural SImulation System.}  New York:
-% TELOS/Springer--Verlag.
-
-
-% [3] Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of learning and
-% recall at excitatory recurrent synapses and cholinergic modulation in rat
-% hippocampal region CA3. {\it Journal of Neuroscience} {\bf 15}(7):5249-5262.
-% }
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-\section{Supplementary Material}
-
-Below, the reader can find additional material that is helpful to the understanding of the project. Figures are included with brief explanations of their relevance to the project. 
-
-\end{document}

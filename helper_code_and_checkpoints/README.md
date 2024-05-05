@@ -1,0 +1,6 @@
+# CPSC471_Final
+This directory contains save files as well as helper functions for the directory. These programs have been used in the creation of the final report to automate the process of creating the monotonous labor of creating the regression coefficient graphs. 
+
+Additionally, this folder contains some general generated images that are used across runs to show the distribution of the principal components amongst other general information. The `models_save` directory contains the intermediate versions of all of the models that have been created using this gradient realignment algorithm. `node_importance_delta` contains more save files for models to keep track of the differences across training iterations.
+
+`processing_importances_for_latex.py` processes the output of the importance reduction notebook that runs the influence re-weighting function and changes the format so that the output can be integrated directly into latex. `generating_regression_coefficients_latex.py` does the same thing but for the regression coefficients instead of the relative importances. 

@@ -17,3 +17,5 @@ Within this repository, we have the following directories that have the followin
 | models_save | This contains all of the checkpoints for models that we have created in the process of creating this entire repository. It has all of the models that have been saved and kept across the runthroughs of the notebook and is valuable for analysis of model performance overtime. |
 | runthroughs | This contains all of the full runs that we have performed of the most important notebooks of this directory. There is an included description for each of the folders in the readme within the sub-directory of runthroughs. |
 | references | This contains the consulted and cited sources that are used to create this project. |
+
+It is important to note that running the training process and explanation processes is extremely time- and computation-intensive, so please be wary of where the note books are run and respectful of resources. 
