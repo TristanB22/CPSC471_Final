@@ -27,5 +27,7 @@ Within this repository, we have the following directories that have the followin
 
 It is important to note that running the training process and explanation processes is extremely time- and computation-intensive, so please be wary of where the note books are run and respectful of resources. 
 
+The `Final_Report.pdf` file contains the final report that I compiled after the class and an extra summer graciously supported by the Keidel Grant to work on the project. I am excited for the future of explainable machine learning to see where the field goes, and am honored to be a contributor to the space. 
+
 ### Running the Project
 In order to run the project, please navigate to `notebooks` and run either the `concept_focused_training.ipynb` or `importance_reduction.ipynb` notebooks. Description of these notebooks and their functions exists in the directory. 
